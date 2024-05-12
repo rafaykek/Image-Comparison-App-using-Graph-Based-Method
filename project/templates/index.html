@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing App</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('static/images/pic.jpeg'); /* Adjust the path to your background image */
+            background-size: cover;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9); /* Adjust the opacity as needed */
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for depth */
+            max-width: 600px; /* Limit container width for better readability */
+        }
+        h1 {
+            font-size: 2.5em; /* Increase header font size for emphasis */
+            margin-bottom: 30px; /* Add spacing below header */
+            text-align: center; /* Center-align the header */
+        }
+        .form-group {
+            margin-bottom: 20px; /* Add spacing between form elements */
+        }
+        #result img {
+            height: 135px; /* Maintain aspect ratio */
+            border-radius: 14px; /* Add a slight border radius for aesthetics */
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Image Processing App</h1>
+    <form id="uploadForm" enctype="multipart/form-data" method="post">
+        <div class="form-group">
+            <label for="fileInput1">Select image 1 to upload</label>
+            <input type="file" id="fileInput1" name="file1" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="fileInput2">Select image 2 to upload</label>
+            <input type="file" id="fileInput2" name="file2" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-info btn-block">Upload Images</button>
+    </form>
+
+    <div id="result"></div>
+
+<hr> 
+
+<button id="checkSimilarityBtn" class="btn btn-primary btn-block">Check Similarity</button>
+<hr> 
+
+<button id="displayGraphBtn" class="btn btn-primary btn-block">Display Graphs</button>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script> 
+<script>
+$(document).ready(function(){
+    $('#uploadForm').submit(function(event){
+        event.preventDefault();
+        var formData = new FormData();
+        formData.append('file1', $('#fileInput1')[0].files[0]); // Use 'file1' as key
+        formData.append('file2', $('#fileInput2')[0].files[0]); // Use 'file2' as key
+        $.ajax({
+            url: '/upload',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response){
+                var filenames = response.split(","); // Split filenames
+                $('#result').empty(); // Clear previous results
+                filenames.forEach(function(filename){
+                    $('#result').append('<img src="/static/uploads/' + filename + '" class="img-fluid">');
+                });
+            }
+        });
+    });
+});
+
+$('#checkSimilarityBtn').click(function() {
+    $.ajax({
+        url: '/check_similarity',  // Endpoint to handle the request
+        type: 'GET',
+        success: function(response) {
+            // Display the "hello" message received from Flask
+            $('#result').html('<p>' + response + '</p>');
+        }
+    });
+});
+
+$(document).ready(function() {
+            $('#displayGraphBtn').click(function() {
+                $.ajax({
+                    url: '/display_graph',  
+                    type: 'GET',
+                    success: function(response){
+                        var filenames = response; // Filenames received from server
+                        $('#result').empty(); // Clear previous results
+                        filenames.forEach(function(filename){
+                            $('#result').append('<img src="/static/graphs/' + filename + '" class="img-fluid" style="width: 100%; height: auto;">');
+                        });
+                    }
+                });
+            });
+        });
+
+</script>
+
+</body>
+</html>
